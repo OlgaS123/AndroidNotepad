@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:android="http://schemas.android.com/apk/res/android">
+	
+	<item android:title="Themes" >
+		<menu >
+			<item
+				android:id="@+id/lightThemeMenu"
+				android:title="Light" />
+			<item
+				android:id="@+id/darkThemeMenu"
+				android:title="Dark" />
+		</menu>
+	</item>
+	<item
+		android:id="@+id/loadMenu"
+		android:title="Load" />
+	<item
+		android:id="@+id/clearMenu"
+		android:title="Clear" />
+	<item
+		android:id="@+id/saveMenu"
+		android:title="Save"
+		app:showAsAction="always" />
+</menu>
