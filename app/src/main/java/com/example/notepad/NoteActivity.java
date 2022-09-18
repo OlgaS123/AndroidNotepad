@@ -29,6 +29,7 @@ public class NoteActivity extends AppCompatActivity {
 		//
 		Intent intent = getIntent();
 		noteId = intent.getIntExtra(DBManager.ID, 0);
+		Note fromFile = (Note)intent.getSerializableExtra("NoteFromFile");
 		dbManager=new DBManager(this);
 		//Log.e("FF", String.valueOf(noteId));
 		if(noteId!=0){
@@ -36,6 +37,11 @@ public class NoteActivity extends AppCompatActivity {
 			binding.titleNote.setText(note.getTitle());
 			binding.timeNote.setText(note.getFormattedTime());
 			binding.textNote.setText(note.getText());
+		}
+		else if(fromFile!=null){
+			binding.titleNote.setText(fromFile.getTitle());
+			binding.timeNote.setText(fromFile.getFormattedTime());
+			binding.textNote.setText(fromFile.getText());
 		}
 	}
 
@@ -54,12 +60,10 @@ public class NoteActivity extends AppCompatActivity {
 				else
 					dbManager.insert(new Note(binding.titleNote.getText().toString(), LocalDateTime.now(), binding.textNote.getText().toString()));
 				break;
-			case R.id.loadFileMenu:
-				Log.e("FF", "saveMenu");
-				//FileManager.save(this, binding.text.getText().toString());
+			case R.id.saveFileMenu:
+				FileManager.save(this, new Note(binding.titleNote.getText().toString(), LocalDateTime.now(), binding.textNote.getText().toString()));
 				break;
 			case R.id.clearMenu:
-				Log.e("FF", "clearMenu");
 				binding.textNote.setText("");
 				break;
 		}

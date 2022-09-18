@@ -13,7 +13,7 @@
 		</menu>
 	</item>
 	<item
-		android:id="@+id/loadFileMenu"
+		android:id="@+id/saveFileMenu"
 		android:title="Load" />
 	<item
 		android:id="@+id/clearMenu"

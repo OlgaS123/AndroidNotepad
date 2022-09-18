@@ -6,7 +6,7 @@
 		android:id="@+id/saveDbMenu"
 		android:title="Save(DB)" />
 	<item
-		android:id="@+id/loadFileMenu"
+		android:id="@+id/saveFileMenu"
 		android:title="Save(File)" />
 	<item
 		android:id="@+id/clearMenu"

@@ -12,6 +12,7 @@ import android.view.MenuItem;
 
 import com.example.notepad.adapters.NotesAdapterCursor;
 import com.example.notepad.data.DBManager;
+import com.example.notepad.data.FileManager;
 import com.example.notepad.databinding.ActivityAllNotesRecyclerBinding;
 import com.example.notepad.models.Note;
 
@@ -76,6 +77,14 @@ public class AllNotesRecyclerActivity extends AppCompatActivity {
 			case R.id.newNoteMenu:
 				Intent intent = new Intent(this, NoteActivity.class);
 				startActivity(intent);
+				break;
+			case R.id.loadFileMenu:
+				Note note = FileManager.load(this);
+				if(note!=null){
+					Intent intent1 = new Intent(this, NoteActivity.class);
+					intent1.putExtra("NoteFromFile", note);
+					startActivity(intent1);
+				}
 				break;
 		}
 		return super.onOptionsItemSelected(item);

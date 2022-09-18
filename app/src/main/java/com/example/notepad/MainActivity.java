@@ -32,12 +32,12 @@ public class MainActivity extends AppCompatActivity {
 		switch (item.getItemId()) {
 			case R.id.saveDbMenu:
 				Log.e("FF", "saveMenu");
-				FileManager.save(this, binding.text.getText().toString());
+				//FileManager.save(this, binding.text.getText().toString());
 				break;
-			case R.id.loadFileMenu:
+			case R.id.saveFileMenu:
 				Log.e("FF", "loadMenu");
-				String load = FileManager.load(this);
-				binding.text.setText(load);
+				//String load = FileManager.load(this);
+				//binding.text.setText(load);
 				break;
 			case R.id.clearMenu:
 				Log.e("FF", "clearMenu");

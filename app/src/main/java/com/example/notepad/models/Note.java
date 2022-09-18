@@ -1,9 +1,10 @@
 package com.example.notepad.models;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class Note {
+public class Note implements Serializable {
 	private Integer id;
 	private String title;
 	private LocalDateTime time;
