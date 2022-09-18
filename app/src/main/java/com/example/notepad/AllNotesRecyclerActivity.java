@@ -1,9 +1,14 @@
 package com.example.notepad;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import com.example.notepad.adapters.NotesAdapterCursor;
 import com.example.notepad.data.DBManager;
@@ -16,6 +21,7 @@ import java.util.List;
 
 public class AllNotesRecyclerActivity extends AppCompatActivity {
 	private ActivityAllNotesRecyclerBinding binding;
+	DBManager manager;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -28,7 +34,9 @@ public class AllNotesRecyclerActivity extends AppCompatActivity {
 			new Note("bb", LocalDateTime.now(), "bbb"),
 			new Note("cc", LocalDateTime.now(), "ccc")
 		);
-		DBManager manager = new DBManager(this);
+		manager = new DBManager(this);
+		manager.dropTab();
+		manager.createTab();
 		for (Note note : list) {
 			manager.insert(note);
 		}
@@ -46,5 +54,30 @@ public class AllNotesRecyclerActivity extends AppCompatActivity {
 		//2
 		NotesAdapterCursor adapter = new NotesAdapterCursor(this, cursor);
 		binding.notesRecycler.setAdapter(adapter);
+	}
+
+	@Override
+	protected void onResume() {
+		Cursor cursor = manager.findAllToCursor();
+		NotesAdapterCursor adapter = new NotesAdapterCursor(this, cursor);
+		binding.notesRecycler.setAdapter(adapter);
+		super.onResume();
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(@NonNull Menu menu) {
+		getMenuInflater().inflate(R.menu.note_list_menu, menu);
+		return super.onCreateOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+		switch (item.getItemId()) {
+			case R.id.newNoteMenu:
+				Intent intent = new Intent(this, NoteActivity.class);
+				startActivity(intent);
+				break;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 }

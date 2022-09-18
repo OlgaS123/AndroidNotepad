@@ -30,11 +30,11 @@ public class MainActivity extends AppCompatActivity {
 	@Override
 	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 		switch (item.getItemId()) {
-			case R.id.saveMenu:
+			case R.id.saveDbMenu:
 				Log.e("FF", "saveMenu");
 				FileManager.save(this, binding.text.getText().toString());
 				break;
-			case R.id.loadMenu:
+			case R.id.loadFileMenu:
 				Log.e("FF", "loadMenu");
 				String load = FileManager.load(this);
 				binding.text.setText(load);

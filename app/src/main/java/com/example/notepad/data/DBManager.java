@@ -27,8 +27,8 @@ public class DBManager extends SQLiteOpenHelper {
 
 	public DBManager(@Nullable Context context) {
 		super(context, DB_NAME, null, 1);
-		dropTab();
-		createTab();
+		//dropTab();
+		//createTab();
 	}
 
 	@Override

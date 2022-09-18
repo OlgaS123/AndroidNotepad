@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:android="http://schemas.android.com/apk/res/android">
-	
+
+	<item
+		android:id="@+id/newNoteMenu"
+		android:title="New"
+		app:showAsAction="always" />
+	<item
+		android:id="@+id/loadFileMenu"
+		android:title="Load(File)" />
 	<item android:title="Themes" >
 		<menu >
 			<item
@@ -12,14 +19,4 @@
 				android:title="Dark" />
 		</menu>
 	</item>
-	<item
-		android:id="@+id/loadFileMenu"
-		android:title="Load" />
-	<item
-		android:id="@+id/clearMenu"
-		android:title="Clear" />
-	<item
-		android:id="@+id/saveDbMenu"
-		android:title="Save"
-		app:showAsAction="always" />
 </menu>
