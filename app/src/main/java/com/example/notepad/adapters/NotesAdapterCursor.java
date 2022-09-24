@@ -12,6 +12,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.notepad.AllNotesRecyclerActivity;
 import com.example.notepad.NoteActivity;
 import com.example.notepad.R;
 import com.example.notepad.data.DBManager;
@@ -54,7 +55,9 @@ public class NotesAdapterCursor extends RecyclerView.Adapter<NotesAdapterCursor.
 			holder.itemView.setOnClickListener(v -> {
 				Intent intent = new Intent(context, NoteActivity.class);
 				intent.putExtra(DBManager.ID, holder.id);
-				context.startActivity(intent);
+				//context.startActivity(intent);
+				AllNotesRecyclerActivity activity = (AllNotesRecyclerActivity) context;
+				activity.getResultLauncher().launch(intent);
 			});
 		}
 	}
