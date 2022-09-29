@@ -1,10 +1,8 @@
 package com.example.notepad;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.PopupMenu;
+import static android.text.Html.FROM_HTML_MODE_COMPACT;
+import static android.text.Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL;
 
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -18,11 +16,16 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.PopupMenu;
 
 import com.example.notepad.data.DBManager;
 import com.example.notepad.data.FileManager;
@@ -33,9 +36,10 @@ import java.time.LocalDateTime;
 
 public class NoteActivity extends AppCompatActivity {
 	private ActivityNoteBinding binding;
-	private DBManager dbManager;
-	private Integer noteId;
+	private DBManager manager;
 	private AlertDialog alertDialog;
+	Integer noteId;
+	Intent intent;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -43,45 +47,72 @@ public class NoteActivity extends AppCompatActivity {
 		binding = ActivityNoteBinding.inflate(getLayoutInflater());
 		setContentView(binding.getRoot());
 		//
-		Intent intent = getIntent();
-		dbManager=new DBManager(this);
+		manager = new DBManager(this);
 		//
+		intent = getIntent();
 		noteId = intent.getIntExtra(DBManager.ID, 0);
 		Note fromFile = (Note)intent.getSerializableExtra("NoteFromFile");
-		//Log.e("FF", String.valueOf(noteId));
-		if(noteId!=0){
-			Note note = dbManager.findById(noteId);
+		Log.e("FF", String.valueOf(noteId));
+		//
+		if (noteId != 0) {
+			Note note = manager.findById(noteId);
 			binding.titleNote.setText(note.getTitle());
-			binding.timeNote.setText(note.getFormattedTime());
-			binding.textNote.setText(note.getText());
+			binding.timeNote.setText(note.getTime().toString());
+			SpannableString spannableString = new SpannableString(Html.fromHtml(note.getText(),FROM_HTML_MODE_COMPACT));
+			binding.textNote.setText(spannableString);
 		}
 		else if(fromFile!=null){
 			binding.titleNote.setText(fromFile.getTitle());
 			binding.timeNote.setText(fromFile.getFormattedTime());
-			binding.textNote.setText(fromFile.getText());
+			SpannableString spannableString = new SpannableString(Html.fromHtml(fromFile.getText(),FROM_HTML_MODE_COMPACT));
+			binding.textNote.setText(spannableString);
+
 		}
 		//
-		registerForContextMenu(binding.styleNote);
-		registerForContextMenu(binding.colorNote);
-		registerForContextMenu(binding.clearNote);
+		binding.styleNote.setOnClickListener(v->{createPopUpMenu(binding.styleNote);});
+		binding.colorNote.setOnClickListener(v->{createPopUpMenu(binding.colorNote);});
+		binding.clearNote.setOnClickListener(v->{createPopUpMenu(binding.clearNote);});
 		binding.backNote.setOnClickListener(v->{createPopUpMenu(binding.backNote);});
 		//
+
 		alertDialog = new AlertDialog.Builder(this)
 				.setCancelable(true)
 				.setTitle("Saving")
-				.setMessage("Save?")
-				.setNegativeButton("Cancel", (dialog, which)->{
-					Toast.makeText(this, "Canceled", Toast.LENGTH_LONG).show();
+				.setMessage("Save Changes?")
+				.setNegativeButton("Cancel", (dialog, which) -> {
 					setResult(RESULT_CANCELED);
 					super.onBackPressed();
 				})
-				.setPositiveButton("Save",(dialog, which)->{
-					Note note = new Note(binding.titleNote.getText().toString(), LocalDateTime.now(), binding.textNote.getText().toString());
-					dbManager.insert(note);
-					Toast.makeText(this, "Saved", Toast.LENGTH_LONG).show();
-					setResult(RESULT_OK, new Intent().putExtra("test","test result"));
-					super.onBackPressed();
-				}).create();
+				.setPositiveButton("Save", (dialog, which) -> {
+					saveNoteToDb();
+				})
+				.create();
+	}
+
+	public void saveNoteToDb(){
+		Note noteSave = new Note(
+				binding.titleNote.getText().toString(),
+				LocalDateTime.now(),
+				Html.toHtml(new SpannableString(binding.textNote.getText()),
+						TO_HTML_PARAGRAPH_LINES_INDIVIDUAL)
+		);
+		//insert/update
+		Integer idSave = 0;
+		Intent intentSave = new Intent();
+		int position = getIntent().getIntExtra("position", -1);
+		if (position < 0){
+			idSave = manager.insert(noteSave);
+			intentSave.putExtra("create", true);
+		}
+		else{
+			idSave=noteId;
+			noteSave.setId(idSave);
+			manager.update(noteSave);
+			intentSave.putExtra("position", position);
+		}
+		intentSave.putExtra(DBManager.ID, idSave);
+		setResult(RESULT_OK, intentSave);
+		super.onBackPressed();
 	}
 
 	@Override
@@ -94,13 +125,13 @@ public class NoteActivity extends AppCompatActivity {
 	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.saveDbMenu:
-				if(noteId != 0)
-					dbManager.update(new Note(noteId, binding.titleNote.getText().toString(), LocalDateTime.now(), binding.textNote.getText().toString()));
-				else
-					dbManager.insert(new Note(binding.titleNote.getText().toString(), LocalDateTime.now(), binding.textNote.getText().toString()));
+				saveNoteToDb();
 				break;
 			case R.id.saveFileMenu:
-				FileManager.save(this, new Note(binding.titleNote.getText().toString(), LocalDateTime.now(), binding.textNote.getText().toString()));
+				FileManager.save(this, new Note(
+						binding.titleNote.getText().toString(),
+						LocalDateTime.now(),
+						Html.toHtml(new SpannableString(binding.textNote.getText()), TO_HTML_PARAGRAPH_LINES_INDIVIDUAL)));
 				break;
 			case R.id.clearMenu:
 				binding.textNote.setText("");
@@ -111,9 +142,69 @@ public class NoteActivity extends AppCompatActivity {
 
 	@Override
 	public void onBackPressed() {
-		//setResultAndClose();
-		//super.onBackPressed();
 		alertDialog.show();
+	}
+
+	public void createPopUpMenu(View view){
+		PopupMenu popupMenu = new PopupMenu(this, view);
+		switch (view.getId()) {
+			case R.id.styleNote:
+				popupMenu.inflate(R.menu.text_style_menu);
+				break;
+			case R.id.colorNote:
+				popupMenu.inflate(R.menu.text_color_menu);
+				break;
+			case R.id.backNote:
+				popupMenu.inflate(R.menu.bg_color_menu);
+				break;
+			case R.id.clearNote:
+				popupMenu.inflate(R.menu.text_clear_style_menu);
+				break;
+		}
+		popupMenu.setOnMenuItemClickListener(item -> {
+			switch (item.getItemId()){
+				case R.id.normalMenu:
+					delSpan(StyleSpan.class, false);
+					break;
+				case R.id.boldMenu:
+					setSpan(new StyleSpan(Typeface.BOLD));
+					break;
+				case R.id.italicMenu:
+					setSpan(new StyleSpan(Typeface.ITALIC));
+					break;
+				case R.id.boldItalicMenu:
+					setSpan(new StyleSpan(Typeface.BOLD_ITALIC));
+					break;
+				//===================================
+				case R.id.blackColorMenu:
+					//setSpan(new StyleSpan(Typeface.NORMAL));
+					delSpan(ForegroundColorSpan.class, false);
+					break;
+				case R.id.redColorMenu:
+					setSpan(new ForegroundColorSpan(Color.RED));
+					break;
+				//===================================
+				case R.id.noneBgMenu:
+					delSpan(BackgroundColorSpan.class, false);
+					break;
+				case R.id.redBgMenu:
+					setSpan(new BackgroundColorSpan(Color.RED));
+					break;
+				//===================================
+				case R.id.allMenu:
+					delSpan(StyleSpan.class, true);
+					delSpan(ForegroundColorSpan.class, true);
+					delSpan(BackgroundColorSpan.class, true);
+					break;
+				case R.id.selectionMenu:
+					delSpan(StyleSpan.class, false);
+					delSpan(ForegroundColorSpan.class, false);
+					delSpan(BackgroundColorSpan.class, false);
+					break;
+			}
+			return true;
+		});
+		popupMenu.show();
 	}
 
 	public void setSpan(ParcelableSpan span){
@@ -137,84 +228,5 @@ public class NoteActivity extends AppCompatActivity {
 		String html = Html.toHtml(spannableString, Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL);
 		Log.e("FF",html);
 		binding.textNote.setText(spannableString);
-	}
-
-	/*private void setResultAndClose(){
-		alertDialog.show();
-	}*/
-
-	@Override
-	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-		super.onCreateContextMenu(menu, v, menuInfo);
-		switch (v.getId()){
-			case R.id.styleNote:
-				menu.setHeaderTitle("Style");
-				getMenuInflater().inflate(R.menu.text_style_menu, menu);
-				break;
-			case R.id.colorNote:
-				menu.setHeaderTitle("Color");
-				getMenuInflater().inflate(R.menu.text_color_menu, menu);
-				break;
-			case R.id.clearNote:
-				menu.setHeaderTitle("Clear");
-				getMenuInflater().inflate(R.menu.text_clear_style_menu, menu);
-				break;
-		}
-
-	}
-
-	@Override
-	public boolean onContextItemSelected(@NonNull MenuItem item) {
-		switch (item.getItemId()){
-			case R.id.normalMenu:
-				delSpan(StyleSpan.class, false);
-				break;
-			case R.id.boldMenu:
-				setSpan(new StyleSpan(Typeface.BOLD));
-				break;
-			case R.id.italicMenu:
-				setSpan(new StyleSpan(Typeface.ITALIC));
-				break;
-			case R.id.boldItalicMenu:
-				setSpan(new StyleSpan(Typeface.BOLD_ITALIC));
-				break;
-			//===================================
-			case R.id.blackColorMenu:
-				//setSpan(new StyleSpan(Typeface.NORMAL));
-				delSpan(ForegroundColorSpan.class, false);
-				break;
-			case R.id.redColorMenu:
-				setSpan(new ForegroundColorSpan(Color.RED));
-				break;
-			//===================================
-			case R.id.allMenu:
-				delSpan(StyleSpan.class, true);
-				delSpan(ForegroundColorSpan.class, true);
-				delSpan(BackgroundColorSpan.class, true);
-				break;
-			case R.id.selectionMenu:
-				delSpan(StyleSpan.class, false);
-				delSpan(ForegroundColorSpan.class, false);
-				delSpan(BackgroundColorSpan.class, false);
-				break;
-		}
-		return super.onContextItemSelected(item);
-	}
-
-	public void createPopUpMenu(View view){
-		PopupMenu popupMenu = new PopupMenu(this, view);
-		popupMenu.inflate(R.menu.text_color_menu);
-		popupMenu.setOnMenuItemClickListener(item -> {
-			switch (item.getItemId()){
-				case R.id.blackColorMenu:
-					delSpan(BackgroundColorSpan.class, false);
-					break;
-				case R.id.redColorMenu:
-					setSpan(new BackgroundColorSpan(Color.RED));
-					break;
-			}
-			return true;
-		});
-		popupMenu.show();
 	}
 }

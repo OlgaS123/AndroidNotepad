@@ -28,7 +28,7 @@ public class DBManager extends SQLiteOpenHelper {
 	public DBManager(@Nullable Context context) {
 		super(context, DB_NAME, null, 1);
 		//dropTab();
-		//createTab();
+		createTab();
 	}
 
 	@Override
@@ -49,26 +49,31 @@ public class DBManager extends SQLiteOpenHelper {
 	public void createTab() {
 		db = getWritableDatabase();
 		String sql = "create table if not exists %s(" +
-			"%s integer primary key autoincrement," +
-			"%s text," +
-			"%s text," +
-			"%s text" +
-			")";
+				"%s integer primary key autoincrement," +
+				"%s text," +
+				"%s text," +
+				"%s text" +
+				")";
 		sql = String.format(sql, TAB, ID, TITLE, TIME, TEXT);
 		db.execSQL(sql);
 	}
 
-	public void insert(Note note) {
+	public Integer insert(Note note) {
 		db = getWritableDatabase();
 		String sql = "insert into %s(%s,%s,%s) values('%s','%s','%s')";
 		sql = String.format(sql, TAB, TITLE, TIME, TEXT,
-			note.getTitle(), note.getTime(), note.getText());
+				note.getTitle(), note.getTime(), note.getText());
 		Log.e("FF", sql);
 		db.execSQL(sql);
-
-		/*deleteById(1);
-		update(new Note(2,"UPD",LocalDateTime.now(),"UPD"));
-		System.err.println(findAllToList());*/
+		//
+		db = getReadableDatabase();
+		sql = String.format("select max(%s) from " + TAB, ID);
+		Cursor cursor = db.rawQuery(sql, new String[]{});
+		if (cursor.moveToFirst()) {
+			int id = cursor.getInt(0);
+			return id;
+		}
+		return 0;
 	}
 
 	@SuppressLint("Range")
@@ -81,17 +86,11 @@ public class DBManager extends SQLiteOpenHelper {
 		Note note;
 		//
 		while (cursor.moveToNext()) {
-			//1
-			/*for (int i = 1; i < cursor.getColumnCount(); i++) {
-				Log.e("FF", cursor.getString(i));
-			}
-			Log.e("FF", "---");*/
-			//2
 			note = new Note(
-				cursor.getInt(cursor.getColumnIndex(ID)),
-				cursor.getString(cursor.getColumnIndex(TITLE)),
-				LocalDateTime.parse(cursor.getString(cursor.getColumnIndex(TIME))),
-				cursor.getString(cursor.getColumnIndex(TEXT))
+					cursor.getInt(cursor.getColumnIndex(ID)),
+					cursor.getString(cursor.getColumnIndex(TITLE)),
+					LocalDateTime.parse(cursor.getString(cursor.getColumnIndex(TIME))),
+					cursor.getString(cursor.getColumnIndex(TEXT))
 			);
 			list.add(note);
 		}
@@ -113,10 +112,10 @@ public class DBManager extends SQLiteOpenHelper {
 		if (!cursor.moveToNext())
 			return null;
 		return new Note(
-			cursor.getInt(cursor.getColumnIndex(ID)),
-			cursor.getString(cursor.getColumnIndex(TITLE)),
-			LocalDateTime.parse(cursor.getString(cursor.getColumnIndex(TIME))),
-			cursor.getString(cursor.getColumnIndex(TEXT))
+				cursor.getInt(cursor.getColumnIndex(ID)),
+				cursor.getString(cursor.getColumnIndex(TITLE)),
+				LocalDateTime.parse(cursor.getString(cursor.getColumnIndex(TIME))),
+				cursor.getString(cursor.getColumnIndex(TEXT))
 		);
 	}
 
@@ -131,10 +130,17 @@ public class DBManager extends SQLiteOpenHelper {
 
 	public void update(Note note)
 	{
-			db = getWritableDatabase();
-			String sql = "update %s set %s='%s', %s='%s', %s='%s' where %s=%d";
-			sql = String.format(sql, TAB, TITLE, note.getTitle(), TIME, note.getTime(), TEXT, note.getText(), ID, note.getId());
-			Log.e("FF", sql);
-			db.execSQL(sql);
+		db = getWritableDatabase();
+		String sql = "update %s set %s='%s', %s='%s', %s='%s' where %s=%d";
+		sql = String.format(sql, TAB, TITLE, note.getTitle(), TIME, note.getTime(), TEXT, note.getText(), ID, note.getId());
+		Log.e("FF", sql);
+		db.execSQL(sql);
+	}
+
+	public Cursor findByIdCursor(@NonNull Integer id) {
+		db = getReadableDatabase();
+		String sql = "select * from %s where %s=?";
+		sql = String.format(sql, TAB, ID);
+		return db.rawQuery(sql, new String[]{id.toString()});
 	}
 }

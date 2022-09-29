@@ -20,32 +20,6 @@ public class MainActivity extends AppCompatActivity {
 		binding = ActivityMainBinding.inflate(getLayoutInflater());
 		setContentView(binding.getRoot());
 	}
-
-	@Override
-	public boolean onCreateOptionsMenu(@NonNull Menu menu) {
-		getMenuInflater().inflate(R.menu.main_menu, menu);
-		return super.onCreateOptionsMenu(menu);
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-		switch (item.getItemId()) {
-			case R.id.saveDbMenu:
-				Log.e("FF", "saveMenu");
-				//FileManager.save(this, binding.text.getText().toString());
-				break;
-			case R.id.saveFileMenu:
-				Log.e("FF", "loadMenu");
-				//String load = FileManager.load(this);
-				//binding.text.setText(load);
-				break;
-			case R.id.clearMenu:
-				Log.e("FF", "clearMenu");
-				binding.text.setText("");
-				break;
-		}
-		return super.onOptionsItemSelected(item);
-	}
 }
 
 

@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.DocumentsContract;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,8 +22,12 @@ import com.example.notepad.data.DBManager;
 import com.example.notepad.data.FileManager;
 import com.example.notepad.databinding.ActivityAllNotesRecyclerBinding;
 import com.example.notepad.models.Note;
+import com.example.notepad.serializers.LocalDateTimeDeserializer;
+import com.example.notepad.serializers.LocalDateTimeSerializer;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -40,155 +45,160 @@ public class AllNotesRecyclerActivity extends AppCompatActivity {
 	private ActivityResultLauncher<Intent> resultLauncher;
 	private ActivityResultLauncher<String> createDocLauncher;
 	private ActivityResultLauncher<String> requestPermissionLauncher;
+	private ActivityResultLauncher<String[]> requestMultiplePermissionsCreateDocLauncher;
+	private ActivityResultLauncher<String[]> requestMultiplePermissionsReadDocLauncher;
 	private ActivityResultLauncher<String[]> readDocLauncher;
 	private ActivityResultLauncher<Uri> openDocTree;
-	private ActivityResultLauncher<String[]> requestMultiplePermissionLauncher;
-	private ActivityResultLauncher<String[]> openDocTreePermission;
-	DBManager manager;
-
-	public ActivityResultLauncher<Intent> getResultLauncher(){
+	private ActivityResultLauncher<String[]> openDocTreePermissions;
+	public ActivityResultLauncher<Intent> getResultLauncher() {
 		return resultLauncher;
+	}
+
+	public static String FILE_NAME = "noteList.txt";
+	public static String ENCODING = "utf8";
+	public static Gson gson;
+	static {
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeSerializer());
+		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer());
+		gson=gsonBuilder.create();
 	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		Log.e("FF", "onCreate");
 		super.onCreate(savedInstanceState);
 		binding = ActivityAllNotesRecyclerBinding.inflate(getLayoutInflater());
 		setContentView(binding.getRoot());
 		//
 		List<Note> list = Arrays.asList(
-			new Note("aa", LocalDateTime.now(), "aaa"),
-			new Note("bb", LocalDateTime.now(), "bbb"),
-			new Note("cc", LocalDateTime.now(), "ccc")
+				new Note("aa", LocalDateTime.now(), "aaa"),
+				new Note("bb", LocalDateTime.now(), "bbb"),
+				new Note("cc", LocalDateTime.now(), "ccc")
 		);
-		manager = new DBManager(this);
+		DBManager manager = new DBManager(this);
 		manager.dropTab();
 		manager.createTab();
 		for (Note note : list) {
 			manager.insert(note);
 		}
 		Cursor cursor = manager.findAllToCursor();
-		//1
-		/*NotesAdapterCollection adapter = new NotesAdapterCollection(this, list);
-		binding.notesRecycler.setAdapter(adapter);*/
-		//1 LayoutManager
-		/*binding.notesRecycler.setLayoutManager(
-			new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false));*/
-		/*binding.notesRecycler.setLayoutManager(
-			new GridLayoutManager(this, 2, RecyclerView.HORIZONTAL, false));*/
-		/*binding.notesRecycler.setLayoutManager(
-			new LinearLayoutManager(this));*/
-		//2
 		NotesAdapterCursor adapter = new NotesAdapterCursor(this, cursor);
 		binding.notesRecycler.setAdapter(adapter);
 
-		//result
-		resultLauncher=registerForActivityResult(
-			new ActivityResultContracts.StartActivityForResult(),
-			result -> {
-				Log.e("FF",""+result);
-				if(result.getResultCode()==RESULT_OK){
-					Log.e("FF",""+result.getData().getStringExtra("test"));
-					Snackbar.make(binding.notesRecycler,"Saved",Snackbar.LENGTH_LONG).show();
+		//RESULT
+		resultLauncher = registerForActivityResult(
+				new ActivityResultContracts.StartActivityForResult(),
+				result -> {
+					Log.e("FF", "" + result);
+					if (result.getResultCode() == RESULT_OK) {
+						if (result.getData().getBooleanExtra("create", false)) {
+							int id = result.getData().getIntExtra(DBManager.ID, 0);
+							//adapter.addElementCursor(manager.findByIdCursor(id));
+							adapter.addElementCursor(manager.findAllToCursor());
+							//
+							Snackbar.make(binding.notesRecycler, "Saved", Snackbar.LENGTH_LONG).show();
+						} else {
+							int id = result.getData().getIntExtra(DBManager.ID, 0);
+							Note note = manager.findById(id);
+							adapter.updateElement(
+									note, result.getData().getIntExtra("position", -1));
+						}
+					} else if (result.getResultCode() == RESULT_CANCELED) {
+						Snackbar.make(binding.notesRecycler, "Canceled", Snackbar.LENGTH_LONG).show();
+					}
 				}
-				else if(result.getResultCode()==RESULT_CANCELED){
-					Snackbar.make(binding.notesRecycler,"Canceled",Snackbar.LENGTH_LONG).show();
-				}
-			}
 		);
-
-		//createDocLauncher
-		createDocLauncher=registerForActivityResult(
+		//CREATE DOC
+		createDocLauncher = registerForActivityResult(
 				new ActivityResultContracts.CreateDocument(ClipDescription.MIMETYPE_TEXT_PLAIN),
-				(Uri uri)->{
+				(Uri uri) -> {
 					try {
 						Log.e("FF", uri.toString());
 						ContentResolver resolver = getContentResolver();
-						OutputStream outputStream = resolver.openOutputStream(uri);
-						outputStream.write("test".getBytes(StandardCharsets.UTF_8));
-						outputStream.close();
-					}
-					catch (Exception e){
+						String noteListGson = gson.toJson(list);
+						OutputStream output = resolver.openOutputStream(uri);
+						output.write(noteListGson.getBytes(ENCODING));
+						output.close();
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
 		);
-		//readDocLauncher
-		readDocLauncher=registerForActivityResult(
+		//READ DOC
+		readDocLauncher = registerForActivityResult(
 				new ActivityResultContracts.OpenDocument(),
-				(Uri uri)->{
+				(Uri uri) -> {
 					try {
 						Log.e("FF", uri.toString());
 						ContentResolver resolver = getContentResolver();
-						InputStream inputStream = resolver.openInputStream(uri);
-						Scanner scanner = new Scanner(inputStream, StandardCharsets.UTF_8.name());
+						InputStream input = resolver.openInputStream(uri);
+						Scanner scanner = new Scanner(input, ENCODING);
 						String json = scanner.nextLine();
 						Log.e("FF", json);
-						inputStream.close();
-					}
-					catch (Exception e){
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
 		);
-		//openDocTree
-		openDocTree=registerForActivityResult(
+		//OPEN DOC TREE
+		openDocTree = registerForActivityResult(
 				new ActivityResultContracts.OpenDocumentTree(),
-				(Uri uri)->{
+				(Uri uri) -> {
 					Log.e("FF", uri.toString());
-
 				}
 		);
-		openDocTreePermission=requestMultiplePermissions(
-				permission->permission.get(Manifest.permission.READ_EXTERNAL_STORAGE),
-				o->openDocTree.launch(null),
-				"some text"
-		);
-		//requestSinglePermissionLauncher
-		requestPermissionLauncher=registerForActivityResult(
-				new ActivityResultContracts.RequestPermission(),
-				permission->{
-					Log.e("FF",permission.toString());
-					if(permission){
-						createDocLauncher.launch(null);
-					}
-					else{
-						Snackbar snackbar=Snackbar.make(AllNotesRecyclerActivity.this,
-								binding.notesRecycler, "Next time press other button =(",
-								BaseTransientBottomBar.LENGTH_LONG);
-						snackbar.show();
-					}
-				}
-		);
-		//requestMultiplePermissionLauncher
-		/*requestMultiplePermissionLauncher=registerForActivityResult(
-				new ActivityResultContracts.RequestMultiplePermissions(),
-				permissions->{
-					Log.e("FF",permissions.toString());
-					if(permissions.get(Manifest.permission.READ_EXTERNAL_STORAGE)){
-						createDocLauncher.launch("");
-					}
-					else{
-						Snackbar snackbar=Snackbar.make(AllNotesRecyclerActivity.this,
-								binding.notesRecycler, "Next time press other button =(",
-								BaseTransientBottomBar.LENGTH_LONG);
-						snackbar.show();
-					}
-				}
-		);*/
-		requestMultiplePermissionLauncher=requestMultiplePermissions(
-				permissions->permissions.get(Manifest.permission.READ_EXTERNAL_STORAGE),
-				o->createDocLauncher.launch("fileName"),
+		openDocTreePermissions = requestMultiplePermissions(
+				permissions -> permissions.get(Manifest.permission.READ_EXTERNAL_STORAGE),
+				o -> openDocTree.launch(null),
 				"To export notes allow permission"
+		);
+		//REQUEST SINGLE PERMISSION
+		requestPermissionLauncher = registerForActivityResult(
+				new ActivityResultContracts.RequestPermission(),
+				permission -> {
+					Log.e("FF", permission.toString());
+					if (permission) {
+						createDocLauncher.launch(DocumentsContract.Document.MIME_TYPE_DIR);
+					} else {
+						Snackbar snackbar = Snackbar.make(AllNotesRecyclerActivity.this,
+								binding.notesRecycler, "To export notes allow permission",
+								BaseTransientBottomBar.LENGTH_LONG);
+						snackbar.show();
+					}
+				}
+		);
+		//REQUEST MULTIPLE PERMISSIONS
+		requestMultiplePermissionsCreateDocLauncher = requestMultiplePermissions(
+				permissions -> permissions.get(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+				o -> createDocLauncher.launch(FILE_NAME),
+				"To export notes allow permission"
+		);
+		requestMultiplePermissionsReadDocLauncher = requestMultiplePermissions(
+				permissions -> permissions.get(Manifest.permission.READ_EXTERNAL_STORAGE),
+				o -> readDocLauncher.launch(new String[]{FILE_NAME}),
+				"To load notes allow permission"
 		);
 	}
 
-	@Override
-	protected void onResume() {
-		Cursor cursor = manager.findAllToCursor();
-		NotesAdapterCursor adapter = new NotesAdapterCursor(this, cursor);
-		binding.notesRecycler.setAdapter(adapter);
-		super.onResume();
+	private ActivityResultLauncher<String[]> requestMultiplePermissions(
+			Predicate<Map<String, Boolean>> checkPermissions,
+			Consumer<?> action,
+			String message
+	) {
+		return registerForActivityResult(
+				new ActivityResultContracts.RequestMultiplePermissions(),
+				(Map<String, Boolean> permissions) -> {
+					if (checkPermissions.test(permissions)) {
+						action.accept(null);
+					} else {
+						Snackbar snackbar = Snackbar.make(AllNotesRecyclerActivity.this,
+								binding.notesRecycler, message,
+								BaseTransientBottomBar.LENGTH_LONG);
+						snackbar.show();
+					}
+				}
+		);
 	}
 
 	@Override
@@ -202,7 +212,7 @@ public class AllNotesRecyclerActivity extends AppCompatActivity {
 		switch (item.getItemId()) {
 			case R.id.newNoteMenu:
 				Intent intent = new Intent(this, NoteActivity.class);
-				startActivity(intent);
+				resultLauncher.launch(intent);
 				break;
 			case R.id.loadFileMenu:
 				Note note = FileManager.load(this);
@@ -213,15 +223,19 @@ public class AllNotesRecyclerActivity extends AppCompatActivity {
 				}
 				break;
 			case R.id.saveListMenu:
-				requestMultiplePermissionLauncher.launch(new String[]{
+				requestMultiplePermissionsCreateDocLauncher.launch(new String[]{
 						Manifest.permission.READ_EXTERNAL_STORAGE,
 						Manifest.permission.WRITE_EXTERNAL_STORAGE
 				});
 				break;
 			case R.id.loadListMenu:
+				requestMultiplePermissionsReadDocLauncher.launch(new String[]{
+						Manifest.permission.READ_EXTERNAL_STORAGE,
+						Manifest.permission.WRITE_EXTERNAL_STORAGE
+				});
 				break;
 			case R.id.browseMenu:
-				openDocTreePermission.launch(new String[]{
+				openDocTreePermissions.launch(new String[]{
 						Manifest.permission.READ_EXTERNAL_STORAGE,
 						Manifest.permission.WRITE_EXTERNAL_STORAGE
 				});
@@ -229,29 +243,4 @@ public class AllNotesRecyclerActivity extends AppCompatActivity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-
-	private ActivityResultLauncher<String[]> requestMultiplePermissions(
-			Predicate<Map<String, Boolean>> checkPermissions,
-			Consumer<?> action,
-			String msg){
-		return registerForActivityResult(
-				new ActivityResultContracts.RequestMultiplePermissions(),
-				(Map<String,Boolean>permissions)->{
-					if(checkPermissions.test(permissions)){
-						action.accept(null);
-					}
-					else{
-						Snackbar snackbar=Snackbar.make(AllNotesRecyclerActivity.this,
-								binding.notesRecycler, msg,
-								BaseTransientBottomBar.LENGTH_LONG);
-						snackbar.show();
-					}
-				}
-		);
-	}
-
-	/*public void startNoteActivity(){
-		Intent intent = new Intent(this, NoteActivity.class);
-		resultLauncher.launch(intent);
-	}*/
 }

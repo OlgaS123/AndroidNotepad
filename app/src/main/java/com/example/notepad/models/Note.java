@@ -11,6 +11,7 @@ public class Note implements Serializable {
 	private String text;
 	public static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
+
 	public Note() {
 	}
 
@@ -66,10 +67,10 @@ public class Note implements Serializable {
 	@Override
 	public String toString() {
 		return "Note{" +
-			"id=" + id +
-			", title='" + title + '\'' +
-			", time=" + getFormattedTime() +
-			", text='" + text + '\'' +
-			'}';
+				"id=" + id +
+				", title='" + title + '\'' +
+				", time=" + time +
+				", text='" + text + '\'' +
+				'}';
 	}
 }

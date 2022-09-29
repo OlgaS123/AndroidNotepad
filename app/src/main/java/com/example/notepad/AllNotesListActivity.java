@@ -46,9 +46,9 @@ public class AllNotesListActivity extends AppCompatActivity {
 		binding.notesList.setAdapter(adapter);*/
 		//3
 		List<Note> list = Arrays.asList(
-			new Note("aa", LocalDateTime.now(), "aaa"),
-			new Note("bb", LocalDateTime.now(), "bbb"),
-			new Note("cc", LocalDateTime.now(), "ccc")
+				new Note("aa", LocalDateTime.now(), "aaa"),
+				new Note("bb", LocalDateTime.now(), "bbb"),
+				new Note("cc", LocalDateTime.now(), "ccc")
 		);
 		DBManager manager = new DBManager(this);
 		for (Note note : list) {
@@ -69,10 +69,10 @@ public class AllNotesListActivity extends AppCompatActivity {
 		//5
 		Cursor cursor = manager.findAllToCursor();
 		SimpleCursorAdapter adapter = new SimpleCursorAdapter(
-			this, R.layout.notes_element, cursor,
-			new String[]{DBManager.TITLE, DBManager.TIME},
-			new int[]{R.id.text1, R.id.text2},
-			0
+				this, R.layout.notes_element, cursor,
+				new String[]{DBManager.TITLE, DBManager.TIME},
+				new int[]{R.id.text1, R.id.text2},
+				0
 		);
 		binding.notesList.setAdapter(adapter);
 	}
