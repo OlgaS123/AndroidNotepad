@@ -28,6 +28,7 @@ import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -53,6 +54,9 @@ public class AllNotesRecyclerActivity extends AppCompatActivity {
 	public ActivityResultLauncher<Intent> getResultLauncher() {
 		return resultLauncher;
 	}
+
+	Cursor cursor;
+	NotesAdapterCursor adapter;
 
 	public static String FILE_NAME = "noteList.txt";
 	public static String ENCODING = "utf8";
@@ -82,8 +86,8 @@ public class AllNotesRecyclerActivity extends AppCompatActivity {
 		for (Note note : list) {
 			manager.insert(note);
 		}
-		Cursor cursor = manager.findAllToCursor();
-		NotesAdapterCursor adapter = new NotesAdapterCursor(this, cursor);
+		cursor = manager.findAllToCursor();
+		adapter = new NotesAdapterCursor(this, cursor);
 		binding.notesRecycler.setAdapter(adapter);
 
 		//RESULT
@@ -116,7 +120,8 @@ public class AllNotesRecyclerActivity extends AppCompatActivity {
 					try {
 						Log.e("FF", uri.toString());
 						ContentResolver resolver = getContentResolver();
-						String noteListGson = gson.toJson(list);
+						List listFromDb = manager.findAllToList();
+						String noteListGson = gson.toJson(listFromDb);
 						OutputStream output = resolver.openOutputStream(uri);
 						output.write(noteListGson.getBytes(ENCODING));
 						output.close();
@@ -135,12 +140,24 @@ public class AllNotesRecyclerActivity extends AppCompatActivity {
 						InputStream input = resolver.openInputStream(uri);
 						Scanner scanner = new Scanner(input, ENCODING);
 						String json = scanner.nextLine();
-						Log.e("FF", json);
+						Log.e("FF!!!!!!!!", json);
+
+						List<Note> listFromJson = gson.fromJson(json,
+								new TypeToken<List<Note>>(){}.getType());
+						manager.dropTab();
+						manager.createTab();
+						for (Note note : listFromJson) {
+							manager.insert(note);
+						}
+						cursor = manager.findAllToCursor();
+						adapter = new NotesAdapterCursor(this, cursor);
+						binding.notesRecycler.setAdapter(adapter);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
 		);
+
 		//OPEN DOC TREE
 		openDocTree = registerForActivityResult(
 				new ActivityResultContracts.OpenDocumentTree(),
@@ -176,11 +193,13 @@ public class AllNotesRecyclerActivity extends AppCompatActivity {
 		);
 		requestMultiplePermissionsReadDocLauncher = requestMultiplePermissions(
 				permissions -> permissions.get(Manifest.permission.READ_EXTERNAL_STORAGE),
-				o -> readDocLauncher.launch(new String[]{FILE_NAME}),
+				o -> readDocLauncher.launch(new String[]{"*/*"}),
 				"To load notes allow permission"
 		);
 	}
+	private void getCursor(){
 
+	}
 	private ActivityResultLauncher<String[]> requestMultiplePermissions(
 			Predicate<Map<String, Boolean>> checkPermissions,
 			Consumer<?> action,
