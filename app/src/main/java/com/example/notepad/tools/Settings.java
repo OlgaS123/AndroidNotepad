@@ -7,6 +7,7 @@ import com.example.notepad.R;
 import com.google.gson.Gson;
 
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
 public class Settings {
@@ -20,7 +21,7 @@ public class Settings {
     }
 
     {
-        //theme = R.style.Light;
+        theme = R.style.Light;
     }
 
     public int theme;
@@ -28,10 +29,9 @@ public class Settings {
     public Settings save(Context context) {
         try {
             Gson gson = new Gson();
-            gson.toJson(this, new OutputStreamWriter(
-                    context.openFileOutput(FILE_NAME, Context.MODE_PRIVATE)
-            ));
-            Log.e("SAVE", gson.toJson(this));
+            OutputStreamWriter writer = new OutputStreamWriter(context.openFileOutput(FILE_NAME, Context.MODE_PRIVATE));
+            gson.toJson(this, writer);
+            writer.flush();
         } catch (Exception e) {
             e.printStackTrace();
         }

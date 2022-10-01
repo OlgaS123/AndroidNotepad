@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Notepad</string>
+    <string name="newNoteMenu">Добавить</string>
+    <string name="loadFileMenu">Загрузить(Файл)</string>
+    <string name="saveListMenu">Сохранить список(Файл)</string>
+    <string name="loadListMenu">Загрузить список(Файл)</string>
+    <string name="browseMenu">Browse</string>
+    <string name="themesMenu">Тема</string>
+    <string name="lightThemeMenu">Темная</string>
+    <string name="darkThemeMenu">Светлая</string>
+    <string name="saveDbMenu">Сохранить(БД)</string>
+    <string name="saveFileMenu">Сохранить(Файл)</string>
+    <string name="clearMenu">Очистить</string>
+    <string name="noneBgMenu">Нет</string>
+    <string name="redColor">Красный</string>
+    <string name="blackColor">Черный</string>
+    <string name="normalMenu">Обычный</string>
+    <string name="boldMenu">Жирный</string>
+    <string name="boldItalicMenu">Жирный Курсив</string>
+    <string name="italicMenu">Курсив</string>
+    <string name="selectionMenu">Выделение</string>
+    <string name="allMenu">Весь текст</string>
+</resources>

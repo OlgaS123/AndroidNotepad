@@ -3,8 +3,8 @@
 
     <item
         android:id="@+id/blackColorMenu"
-        android:title="Black" />
+        android:title="@string/blackColor" />
     <item
         android:id="@+id/redColorMenu"
-        android:title="Red" />
+        android:title="@string/redColor" />
 </menu>

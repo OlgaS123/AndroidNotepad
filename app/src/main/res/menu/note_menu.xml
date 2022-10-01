@@ -4,21 +4,21 @@
 
 	<item
 		android:id="@+id/saveDbMenu"
-		android:title="Save(DB)" />
+		android:title="@string/saveDbMenu" />
 	<item
 		android:id="@+id/saveFileMenu"
-		android:title="Save(File)" />
+		android:title="@string/saveFileMenu" />
 	<item
 		android:id="@+id/clearMenu"
-		android:title="Clear" />
-	<item android:title="Themes" >
+		android:title="@string/clearMenu" />
+	<item android:title="@string/themesMenu" >
 		<menu >
 			<item
 				android:id="@+id/lightThemeMenu"
-				android:title="Light" />
+				android:title="@string/lightThemeMenu" />
 			<item
 				android:id="@+id/darkThemeMenu"
-				android:title="Dark" />
+				android:title="@string/darkThemeMenu" />
 		</menu>
 	</item>
 </menu>

@@ -1,5 +1,7 @@
 package com.example.notepad;
 
+import static com.example.notepad.tools.Settings.settings;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -70,6 +72,9 @@ public class AllNotesRecyclerActivity extends AppCompatActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		settings().load(this);
+		setTheme(settings().theme);
+		//
 		Log.e("FF", "onCreate");
 		super.onCreate(savedInstanceState);
 		binding = ActivityAllNotesRecyclerBinding.inflate(getLayoutInflater());
@@ -258,6 +263,16 @@ public class AllNotesRecyclerActivity extends AppCompatActivity {
 						Manifest.permission.READ_EXTERNAL_STORAGE,
 						Manifest.permission.WRITE_EXTERNAL_STORAGE
 				});
+				break;
+			case R.id.lightThemeMenu:
+				settings().theme=R.style.Light;
+				settings().save(this);
+				recreate();
+				break;
+			case R.id.darkThemeMenu:
+				settings().theme=R.style.Dark;
+				settings().save(this);
+				recreate();
 				break;
 		}
 		return super.onOptionsItemSelected(item);

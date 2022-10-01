@@ -3,14 +3,14 @@
 
     <item
         android:id="@+id/normalMenu"
-        android:title="Normal" />
+        android:title="@string/normalMenu" />
     <item
         android:id="@+id/boldMenu"
-        android:title="Bold" />
+        android:title="@string/boldMenu" />
     <item
         android:id="@+id/boldItalicMenu"
-        android:title="Bold Italic" />
+        android:title="@string/boldItalicMenu" />
     <item
         android:id="@+id/italicMenu"
-        android:title="Italic" />
+        android:title="@string/italicMenu" />
 </menu>

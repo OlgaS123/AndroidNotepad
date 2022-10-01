@@ -1,3 +1,23 @@
 <resources>
 	<string name="app_name">Notepad</string>
+	<string name="newNoteMenu">New</string>
+	<string name="loadFileMenu">Load(File)</string>
+	<string name="saveListMenu">Save List(File)</string>
+	<string name="loadListMenu">Load List(File)</string>
+	<string name="browseMenu">Browse</string>
+	<string name="themesMenu">Themes</string>
+	<string name="lightThemeMenu">Light</string>
+	<string name="darkThemeMenu">Dark</string>
+	<string name="saveDbMenu">Save(DB)</string>
+	<string name="saveFileMenu">Save(File)</string>
+	<string name="clearMenu">Clear</string>
+	<string name="noneBgMenu">None</string>
+	<string name="redColor">Red</string>
+	<string name="blackColor">Black</string>
+	<string name="normalMenu">Normal</string>
+	<string name="boldMenu">Bold</string>
+	<string name="boldItalicMenu">Bold Italic</string>
+	<string name="italicMenu">Italic</string>
+	<string name="selectionMenu">Selection</string>
+	<string name="allMenu">All</string>
 </resources>

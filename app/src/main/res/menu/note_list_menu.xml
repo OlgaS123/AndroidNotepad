@@ -4,28 +4,28 @@
 
 	<item
 		android:id="@+id/newNoteMenu"
-		android:title="New"
+		android:title="@string/newNoteMenu"
 		app:showAsAction="always" />
 	<item
 		android:id="@+id/loadFileMenu"
-		android:title="Load(File)" />
+		android:title="@string/loadFileMenu" />
 	<item
 		android:id="@+id/saveListMenu"
-		android:title="Save List(File)" />
+		android:title="@string/saveListMenu" />
 	<item
 		android:id="@+id/loadListMenu"
-		android:title="Load List(File)" />
+		android:title="@string/loadListMenu" />
 	<item
 		android:id="@+id/browseMenu"
-		android:title="Browse" />
-	<item android:title="Themes" >
+		android:title="@string/browseMenu" />
+	<item android:title="@string/themesMenu" >
 		<menu >
 			<item
 				android:id="@+id/lightThemeMenu"
-				android:title="Light" />
+				android:title="@string/lightThemeMenu" />
 			<item
 				android:id="@+id/darkThemeMenu"
-				android:title="Dark" />
+				android:title="@string/darkThemeMenu" />
 		</menu>
 	</item>
 </menu>
